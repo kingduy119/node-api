@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "build": "babel src --out-dir dist",
-    "debug": "node -r dotenv/config ./dist/bin/www dotenv_config_path=./.env",
+    "debug": "node -r dotenv/config dist/bin/www dotenv_config_path=./.env",
     "dev": "npm run build && npm run debug",
-    "start": "node ./dist/bin/www",
+    "start": "node dist/bin/www",
     "test": "jest"
   },
   "dependencies": {
