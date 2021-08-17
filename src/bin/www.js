@@ -12,17 +12,15 @@ const port = normalizePort(PORT);
 app.set('port', port);
 
 // create http server
-// const server = http.createServer(app);
+const server = http.createServer(app);
 
 // Connect to socket.io
-// socket.connect(server);
-// socket.connect(app);
+socket.connect(server);
 
 // Listen and events
-// server.listen(port);
-// server.on('error', onError);
-// server.on('listening', onListening);
-app.listen(port);
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
 
 
 
