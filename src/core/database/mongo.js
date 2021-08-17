@@ -10,8 +10,10 @@ const connectMongo = () => {
         },
         (error) => {
             error ?
-                _error(`[mongo] ${error.message}`) :
-                info('[mongo] Connected to databse !');
+                console.log("MONGO ERROR") :
+                console.log("MONGO SUCCESS");
+                // _error(`[mongo] ${error.message}`) :
+                // info('[mongo] Connected to databse !');
         }
     );
 }
