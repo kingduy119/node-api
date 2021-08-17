@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    // "checkJs": false,
+    // "resolveJsonModule": true,
+    // "moduleResolution": "node",
+    "target": "es6",
+    "module": "commonjs",
+    "baseUrl": ".",
+    "paths": {
+      "~/*":["src/*"]
+    }
+  },
+  "include": ["."],
+  "exclude": [
+    "dist",
+    "node_modules",
+    "build",
+    ".vscode",
+    ".nuxt",
+    "coverage",
+    "jspm_packages",
+    "tmp",
+    "temp",
+    "bower_components",
+    ".npm",
+    ".yarn"
+  ],
+  // "typeAcquisition": {
+  //   "enable": true
+  // }
+}
