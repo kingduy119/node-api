@@ -11,5 +11,6 @@ module.exports = (app) => {
   apiRoute.use(category);
   apiRoute.use(product);
 
+  app.get('/', (req, res, next) => { return res.send("Server is running!"); })
   app.use("/v1", apiRoute);
 }
