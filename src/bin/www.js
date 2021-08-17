@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import "dotenv/config";
+//import "dotenv/config";
 import app from "~/app";
 import http from "http";
 import logger from "~/core/logger";
