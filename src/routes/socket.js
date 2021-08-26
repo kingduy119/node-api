@@ -31,9 +31,7 @@ class User {
         this.ySpeed = get(data, 'ySpeed', 0);
     }
 
-    setData(data) { 
-        Object.assign(this, this, data);
-    }
+    setData(data) { Object.assign(this, data); }
 
     update(dt) {
         // console.log(dt);
@@ -78,6 +76,22 @@ class User {
     }
 }
 
+class Item {
+    constructor(data) {
+        this.id = get(data, 'id', -1);
+        this.x = get(data, 'x', 0);
+        this.y = get(data, 'y', 0);
+        this.w = get(data, 'w', 60);
+        this.h = get(data, 'h', 60);
+    }
+
+    setData(data) { Object.assign(this, data); }
+
+    update(dt) { 
+
+    }
+}
+
 // Game:
 class Game {
     constructor() {
@@ -85,6 +99,10 @@ class Game {
         this.users = [];
         this.items = [];
         this.timeToBroadcast = 0;
+    }
+
+    init() {
+        this.initItem(randomXY());
     }
 
     start () {
@@ -95,9 +113,16 @@ class Game {
 
         this.timeToBroadcast += dt;
         if(this.timeToBroadcast > 0.2) {
-            let data = this.getData();
-            io.emit("game-update", data);
             this.timeToBroadcast = 0;
+            let data = this.getData();
+
+            // random 2 - 3
+            let latency  = (Math.floor(Math.random() * 2) + 2) * 100;
+            setTimeout(() => {
+
+                io.emit("game-update", data);
+                console.log(`latency: ${latency}`);
+            }, latency);
         }
 
         setTimeout(() => {
@@ -125,6 +150,13 @@ class Game {
         this.users[index] = new User({...data, id: index, ...xy});
         return this.users[index];
     }
+    initItem(data) {
+        let index = this.items.findIndex(u => isEmpty(u));
+        if(index === -1) { index = this.items.length; }
+
+        this.items[index] = new Item({...data, id: index});
+        return this.items[index];
+    }
     getUser(data) {
         let id = parseInt(get(data, "id", -1));
         if(id >= 0 && !isEmpty(this.users[id]))
@@ -137,9 +169,16 @@ class Game {
         if(id >= 0 && !isEmpty(this.users[id]))
             this.users[id].setData(data);
     }
+    upScore(data) {
+        let id = parseInt(get(data, "id", -1));
+        this.users[id].score += 1;
+    }
+    removeUser(data) {
+        let id = parseInt(get(data, "id", -1));
+        this.users[id] = {};
+    }
 }
 // =========================
-
 const handleGame = (socket) => {
 
     // player
@@ -149,52 +188,38 @@ const handleGame = (socket) => {
         let player = eggGame.initPlayer(data);
         socket.emit("player-init", player);
         socket.broadcast.emit("game-spawn-user", player);
-    });
 
-    // socket.on("player-join", data => {
-    //     let user = eggGame.getUser(data);
-    //     socket.broadcast.emit("game-spawn-user", user);
-    // })
+    });
    
     socket.on("player-update", data => {
-        eggGame.setUser(data);
+        eggGame.setUser(pick(data, ['id', 'accLeft', 'accRight', 'accUp', 'accDown']));
     })
 
+    socket.on("player-ping", data => {
+        let id = get(data, 'id');
+        eggGame.setUser({ id, checkPing: true});
+        console.log(JSON.stringify(eggGame.getUser({id})));
+    })
 
-    // socket.on("user-join", (user) => {
-    //     socket.emit("game-load", getData()); //getData for player
-    //     users[user.id] = user;
-    //     socket.broadcast.emit("user-join", users[user.id]); //update for all users
+    // item
+    socket.on("item-collect", data => {
+        let {user, item} = pick(data, ['user', 'item']);
 
-    //     pingUser(socket, user.id);
-    // });
-    // socket.on("user-update", (user) => {
-    //     users[user.id] = Object.assign({}, users[user.id], user);
-    // })
-    // socket.on("user-ping", user => {
-    //     let id = get(user, 'id');
-    //     users[id] = Object.assign({}, users[id], { checkPing: true});
-
-    // })
+        eggGame.getUser(user).score += 1;
+        eggGame.items[item.id] = {};
+        socket.broadcast.emit(`destroy-item-${item.id}`);
+        setTimeout(() => {
+            let item = eggGame.initItem(randomXY());
+            io.emit("game-spawn-item", item);
+        }, 400);
+    })
 }
-
-// const pingUser = (socket, id) => {
-//     users[id] = Object.assign({}, users[id], { checkPing: false});
-//     socket.emit("user-ping");
-//     setTimeout(() => {
-//         if(!get(users[id], 'checkPing')) {
-//             socket.broadcast.emit(`user-destroy-${id}`);
-//             users[id] = {};
-//             return;
-//         }
-//         pingUser(socket, id);
-//     }, 5000);    
-// }
 
 var eggGame = new Game();
 export function connect(server) {
     io = createSocket(server, { origin: ["*"] });
 
+    eggGame.init();
     eggGame.start();
 
     io.on("connection", (socket) => {
