@@ -1,55 +1,18 @@
-import * as logger from "~/core/logger";
 import { get, isEmpty, pick } from "lodash";
-import { v4 as uuidV4 } from "uuid";
 import createSocket from "socket.io";
 var io = null;
 
-const gameW = 940;
-const gameH = 640;
-
-var timer = 0;
-var stop = true;
-
-var users = [];
-var items = [];
-
-let totalUser = -1;
-var totalItem = 0;
-const MAX_ITEM = 1;
+const GAME_W = 940;
+const GAME_H = 640;
 
 // 1: random position item
 function randomXY() {
-    let maxX = gameW / 2;
-    let maxY = gameH / 2;
+    let maxX = GAME_W / 2;
+    let maxY = GAME_H / 2;
     let x = (Math.random() - 0.5) * 2 * maxX;
     let y = (Math.random() - 0.5) * 2 * maxY;
     return { x, y};
 }
-// function spawnItem() {
-//     if(totalItem < MAX_ITEM) {
-//         let item = randomXY();
-//         items = [...items, {
-//             ...item,
-//             id: totalItem,
-//         }];
-//         totalItem += 1;
-//     }
-// }
-// spawnItem();
-
-const getData = () => ({timer, users, items});
-
-// function startTimer() {
-//     if(stop) updateTimer();
-//     stop = false;
-// }
-// function stopTimer() { stop = true; }
-// function updateTimer() {
-//     setTimeout(() => { 
-//         timer += 1;
-//         if(!stop) { updateTimer(); }
-//     }, 1000);
-// }
 
 class User {
     constructor(data) {
@@ -132,7 +95,7 @@ class Game {
 
         this.timeToBroadcast += dt;
         if(this.timeToBroadcast > 0.2) {
-            let data = pick(this, ['users', 'items']);
+            let data = this.getData();
             io.emit("game-update", data);
             this.timeToBroadcast = 0;
         }
@@ -148,6 +111,8 @@ class Game {
             if(!isEmpty(u)) u.update(dt);
         })
     }
+
+    getData() { return pick(this, ['users', 'items']); }
 
     // Add user into users list:
     // if there is empty object use old id
@@ -173,38 +138,26 @@ class Game {
             this.users[id].setData(data);
     }
 }
-// ========================= START THE GAME
+// =========================
 
 const handleGame = (socket) => {
 
-    // create connect id
-    // socket.emit("connected", gainUserId());
-
-    // socket.on("game-update", data => {
-    //     socket.emit("game-update", getData());
-    // })
-    // socket.on("game-gainscore", data => {
-    //     let {user, item:id} = pick(data, ['user', 'item']);
-    //     Object.assign(users[user.id], pick(user, ['score']));
-    //     Object.assign(items[id], randomXY());
-    //     socket.broadcast.emit(`onDestroy-item-${id}`);
-    //     setTimeout(()=> {
-    //         socket.broadcast.emit("game-spawn-item", items[id]);
-    //         socket.emit("game-spawn-item", items[id]);
-    //     }, 1000);
-    // })
-
     // player
     socket.on("player-request-init", data => {
+        socket.emit("game-init", eggGame.getData());
+
         let player = eggGame.initPlayer(data);
         socket.emit("player-init", player);
+        socket.broadcast.emit("game-spawn-user", player);
     });
+
+    // socket.on("player-join", data => {
+    //     let user = eggGame.getUser(data);
+    //     socket.broadcast.emit("game-spawn-user", user);
+    // })
    
     socket.on("player-update", data => {
         eggGame.setUser(data);
-
-        // let user = eggGame.getUser(data);
-        // if(!isEmpty(user)) socket.emit("player-update", user);
     })
 
 
@@ -222,7 +175,6 @@ const handleGame = (socket) => {
     //     let id = get(user, 'id');
     //     users[id] = Object.assign({}, users[id], { checkPing: true});
 
-    //     console.log(JSON.stringify(users));
     // })
 }
 
