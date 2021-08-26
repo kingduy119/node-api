@@ -14,11 +14,10 @@ export const createProfile = async (req, res, next) => {
     try {
         const { username } = req.body;
         const exists = await UserService.findMany({username});
-        console.log(`${JSON.stringify(exists)} - ${exists.length}`)
+        
         if(exists.length > 0) 
         { return res.json(onSuccess({message: "User exists"})); }
         
-        console.log("Start create user")
         let user = await UserService.createProfile(req);
         res.status(200).json(onSuccess({data: user}));
     } catch (error) {
