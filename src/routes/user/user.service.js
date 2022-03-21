@@ -1,34 +1,58 @@
+import _ from "lodash";
 import User from "./user.model";
 import { hashPassword } from "~/core/utils";
 
-export function findMany(query) {
+const publicFields = ['_id', 'username', 'email', 'firstName', 'lastName'];
+
+function filterQuery(docs, field) {
+    let value = _.get(docs, field);
+    if(!_.isEmpty(value)) {
+        Object.assign(docs, {
+            [field]: { $regex: value }
+        });
+    }
+    return docs;
+}
+// List all users
+export function getUsers(docs) {
+    let query = _.pick(docs, publicFields)
+
+    query = filterQuery(query, 'username');
+    query = filterQuery(query, 'firstName');
+
     return User.find(query);
 }
 
-export function createProfile(request) {
-    const { provider, password} = request.body;
+// Create new user, only unique username
+export async function postUsers (docs) {
+    console.log(JSON.stringify(docs))
+    const { username, password } = docs;
 
-    let hashed = hashPassword('autopassword');
-    if(provider === 'local') { hashed = hashPassword(password); }
-    
-    return User.create({...request.body, password: hashed });
+    const exists = await User.exists({ username });
+    if(exists) throw { username: `${username} is exist`};
+
+    return User.create({...docs, password: hashPassword(password)});
 }
 
-export function findProfile(request) {
-    const { userId } = request.params;
-    return User.findById(userId);
+// Find user _id
+export function getUserId(docs) {
+    return User.findById(
+        _.get(docs, '_id'),
+        publicFields
+    );
 }
 
-export function updateProfile(request) {
-    const update = request.body;
-    const { userId } = request.params;
-    return User.findByIdAndUpdate({_id: userId}, update, { new: true });
+// Update user _id
+export function updateUserId(docs) {
+    const { _id, ...update} = docs;
+
+    return User.findByIdAndUpdate({ _id }, update, { new: true });
 }
 
-export function deleteProfile(request) {
-    const { userId } = request.params;
-    return User.findByIdAndRemove({_id: userId});
+// Delete user _id
+export function deleteUserId(docs) {
+    return User.findByIdAndRemove({
+        _id: _.get(docs, '_id')
+    });
 }
-
-
 

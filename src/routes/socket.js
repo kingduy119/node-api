@@ -121,7 +121,7 @@ class Game {
             setTimeout(() => {
 
                 io.emit("game-update", data);
-                console.log(`latency: ${latency}`);
+                // console.log(`latency: ${latency}`);
             }, latency);
         }
 

@@ -3,11 +3,11 @@ import * as UserController from "./user.controller";
 
 const router = Router();
 
-router.get('/user', UserController.fetchMany );
-router.post('/user', UserController.createProfile );
-router.get('/user/:userId', UserController.fetchProfile );
-router.put('/user/:userId', UserController.updateProfile );
-router.delete('/user/:userId', UserController.deleteProfile );
+router.get('/users', UserController.getUsers );
+router.post('/users', UserController.postUsers );
+router.get('/users/:userId', UserController.getUserId );
+router.put('/users/:userId', UserController.updateUserId );
+router.delete('/users/:userId', UserController.deleteUserId );
 
 
 export default router;

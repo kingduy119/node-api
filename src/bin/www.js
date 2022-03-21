@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 //import "dotenv/config";
-import app from "~/app";
 import http from "http";
+import app from "~/app";
 import logger from "~/core/logger";
-import * as socket from "~/routes/socket"
 import { PORT } from "~/core/config";
+// import * as socket from "~/routes/socket"
 // const debug = require('debug')('new-folder:server');
 
 const port = normalizePort(PORT);
@@ -15,7 +15,7 @@ app.set('port', port);
 const server = http.createServer(app);
 
 // Connect to socket.io
-socket.connect(server);
+// socket.connect(server);
 
 // Listen and events
 server.listen(port);
@@ -24,19 +24,17 @@ server.on('listening', onListening);
 
 
 
+
+
+
+
 //Normalize a port into a number, string, or false.
 function normalizePort(val) {
   const port = parseInt(val, 10);
 
-  if (isNaN(port)) {
-    // named pipe
-    return val;
-  }
+  if (isNaN(port)) return val; // named pipe
 
-  if (port >= 0) {
-    // port number
-    return port;
-  }
+  if (port >= 0) return port; // port number
 
   return false;
 }
@@ -57,11 +55,9 @@ function onError(error) {
   switch (error.code) {
     case 'EACCES':
       logger.error(bind + ' requires elevated privileges');
-      process.exit(1);
       break;
     case 'EADDRINUSE':
       logger.error(bind + ' is already in use');
-      process.exit(1);
       break;
     default:
       throw error;

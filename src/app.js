@@ -1,4 +1,3 @@
-import './core/database/mongo';
 import 'dotenv/config';
 import createError from 'http-errors';
 import express, { json, urlencoded } from 'express';
@@ -8,6 +7,7 @@ import logger from 'morgan';
 import passport from 'passport';
 import cors from 'cors';
 
+import mongoConnect from './core/database/mongo';
 import useRoutes from './routes';
 
 var app = express();
@@ -29,7 +29,11 @@ app.use(express.static(join(__dirname, 'public')));
 app.use(passport.initialize());
 app.use(passport.session());
 
+mongoConnect();
+
 // all routes
+app.disable('etag'); // 304 issue
+
 useRoutes(app);
 
 // catch 404 and forward to error handler
